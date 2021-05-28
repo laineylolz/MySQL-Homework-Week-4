@@ -1,0 +1,111 @@
+1.
+use employees;
+
+drop procedure if exists avgsalarybydeptandgender;
+
+delimiter %% ;
+
+create procedure avgsalarybydeptandgender(
+IN gender varchar(1),
+in dept varchar(25)
+)
+begin
+	SELECT d.dept_name as 'Department', 
+	avg(s.salary) as 'Average Salary'
+	from departments d 
+	inner join dept_emp de using (dept_no) 
+	inner join salaries s using (emp_no)
+	inner join employees e using (emp_no)
+	where e.gender = gender and 
+	d.dept_name = dept
+	group by d.dept_name;
+end %%
+
+delimiter ;
+
+call avgsalarybydeptandgender('m', 'Production');
+
+2.
+drop procedure if exists emp_salary;
+
+delimiter %% ;
+
+create procedure emp_salary(
+in emp_no int(25)
+)
+begin
+	SELECT s.salary as 'Salary', 
+	s.emp_no as 'Employee Number',
+	s.from_date as 'From Date',
+	s.to_date AS 'To Date'
+	from salaries s
+	where s.emp_no = emp_no;
+end %%
+
+delimiter ;
+
+CALL emp_salary('10074');
+
+3.
+use employees;
+
+delimiter %% 
+
+drop procedure if exists current_past_emp %%
+
+create procedure current_past_emp(out curr int, out past int)
+begin
+	declare emp_total int default 0;
+	select count(*) into emp_total from employees;
+	select count(*) into curr from salaries where to_date > NOW();
+	select emp_total - curr into past;
+end
+delimiter ;
+
+call current_past_emp(@curr, @past);
+select @curr, @past;
+
+4.
+use employees;
+
+delimiter %% 
+
+drop procedure if exists emp_info %%
+
+create procedure emp_info (IN emp_number int)
+begin
+	select birth_date, first_name, 
+	last_name, gender, hire_date from employees where 
+	emp_no = emp_number;
+end
+
+delimiter ; 
+
+call emp_info('10084');
+
+5.
+use employees;
+
+delimiter %%
+
+drop procedure if exists emp_position_info %%
+
+create procedure emp_position_info (in emp_number int)
+
+begin
+	select e.first_name as 'First Name', e.last_name as 'Last Name', 
+	t.title as 'Title', t.from_date as 'Title Start Date', 
+	t.to_date as 'Title End date',
+	s.salary, s.from_date as 'Salary Start date',
+	s.to_date as 'Salary End Date',
+	d.dept_name as 'Department' from employees e
+	inner join dept_emp de using (emp_no)
+	inner join departments d using (dept_no)
+	inner join salaries s using (emp_no)
+	inner join titles t using (emp_no) where 
+	e.emp_no = emp_number;
+end
+	
+delimiter ;
+
+ call emp_position_info('10704'); 
